@@ -1,11 +1,13 @@
-<?php
+﻿<?php
 /**
  * Plugin Name: Excellink Product Feeds
  * Plugin URI:  https://excellink.com
  * Description: Generate Google Shopping & Facebook Catalog XML feeds from WooCommerce products.
  * Version:     1.0.0
  * Author:      Excellink
- * Text Domain: excellink-feeds
+ * License:     GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: excellink-product-feeds
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
@@ -17,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 define( 'ELF_VERSION',    '1.0.0' );
 define( 'ELF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ELF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'ELF_TEXT_DOMAIN', 'excellink-feeds' );
+define( 'ELF_TEXT_DOMAIN', 'excellink-product-feeds' );
 
 register_activation_hook( __FILE__, 'elf_activate' );
 register_deactivation_hook( __FILE__, 'elf_deactivate' );
@@ -26,8 +28,8 @@ function elf_activate(): void {
     if ( ! class_exists( 'WooCommerce' ) ) {
         deactivate_plugins( plugin_basename( __FILE__ ) );
         wp_die(
-            '<p>' . esc_html__( 'Excellink Product Feeds requires WooCommerce to be installed and active. Please activate WooCommerce first.', 'excellink-feeds' ) . '</p>',
-            esc_html__( 'Plugin activation failed', 'excellink-feeds' ),
+            '<p>' . esc_html__( 'Excellink Product Feeds requires WooCommerce to be installed and active. Please activate WooCommerce first.', 'excellink-product-feeds' ) . '</p>',
+            esc_html__( 'Plugin activation failed', 'excellink-product-feeds' ),
             [ 'back_link' => true ]
         );
     }
@@ -70,13 +72,13 @@ function elf_plugin_action_links( array $links ): array {
     $settings_link = sprintf(
         '<a href="%s">%s</a>',
         admin_url( 'admin.php?page=elf-product-feeds' ),
-        esc_html__( 'Settings', 'excellink-feeds' )
+        esc_html__( 'Settings', 'excellink-product-feeds' )
     );
     
     $feeds_link = sprintf(
         '<a href="%s">%s</a>',
         admin_url( 'admin.php?page=elf-category-map' ),
-        esc_html__( 'Category Map', 'excellink-feeds' )
+        esc_html__( 'Category Map', 'excellink-product-feeds' )
     );
     
     array_unshift( $links, $settings_link );
@@ -89,7 +91,7 @@ function elf_init(): void {
     if ( ! class_exists( 'WooCommerce' ) ) {
         add_action( 'admin_notices', static function () {
             echo '<div class="notice notice-error"><p>'
-                . esc_html__( 'Excellink Product Feeds requires WooCommerce to be active.', 'excellink-feeds' )
+                . esc_html__( 'Excellink Product Feeds requires WooCommerce to be active.', 'excellink-product-feeds' )
                 . '</p></div>';
         });
         return;

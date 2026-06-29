@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
@@ -19,22 +19,22 @@ class ELF_Health_Monitor {
      */
     public static function add_health_tests( array $tests ): array {
         $tests['direct']['elf_feed_status'] = [
-            'label' => __( 'Product Feed Status', 'excellink-feeds' ),
+            'label' => __( 'Product Feed Status', 'excellink-product-feeds' ),
             'test'  => [ __CLASS__, 'test_feed_status' ],
         ];
 
         $tests['direct']['elf_feed_freshness'] = [
-            'label' => __( 'Feed Freshness', 'excellink-feeds' ),
+            'label' => __( 'Feed Freshness', 'excellink-product-feeds' ),
             'test'  => [ __CLASS__, 'test_feed_freshness' ],
         ];
 
         $tests['direct']['elf_image_sitemap_status'] = [
-            'label' => __( 'Image Sitemap Status', 'excellink-feeds' ),
+            'label' => __( 'Image Sitemap Status', 'excellink-product-feeds' ),
             'test'  => [ __CLASS__, 'test_image_sitemap_status' ],
         ];
 
         $tests['direct']['elf_category_mapping'] = [
-            'label' => __( 'Category Mapping Coverage', 'excellink-feeds' ),
+            'label' => __( 'Category Mapping Coverage', 'excellink-product-feeds' ),
             'test'  => [ __CLASS__, 'test_category_mapping' ],
         ];
 
@@ -48,15 +48,15 @@ class ELF_Health_Monitor {
      */
     public static function test_feed_status(): array {
         $result = [
-            'label'       => __( 'Product feeds are accessible', 'excellink-feeds' ),
+            'label'       => __( 'Product feeds are accessible', 'excellink-product-feeds' ),
             'status'      => 'good',
             'badge'       => [
-                'label' => __( 'Feed Status', 'excellink-feeds' ),
+                'label' => __( 'Feed Status', 'excellink-product-feeds' ),
                 'color' => 'blue',
             ],
             'description' => sprintf(
                 '<p>%s</p>',
-                __( 'Your product feeds are generated and accessible for Google Shopping and Facebook Catalog.', 'excellink-feeds' )
+                __( 'Your product feeds are generated and accessible for Google Shopping and Facebook Catalog.', 'excellink-product-feeds' )
             ),
             'actions'     => '',
             'test'        => 'elf_feed_status',
@@ -67,22 +67,22 @@ class ELF_Health_Monitor {
 
         if ( ! file_exists( $feed_path ) ) {
             $result['status'] = 'critical';
-            $result['label'] = __( 'Product feeds are not generated', 'excellink-feeds' );
+            $result['label'] = __( 'Product feeds are not generated', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
-                __( 'No product feed file found. Please regenerate your feeds from the settings page.', 'excellink-feeds' )
+                __( 'No product feed file found. Please regenerate your feeds from the settings page.', 'excellink-product-feeds' )
             );
             $result['actions'] = sprintf(
                 '<a href="%s" class="button button-primary">%s</a>',
                 admin_url( 'admin.php?page=elf-product-feeds' ),
-                __( 'Regenerate Feeds', 'excellink-feeds' )
+                __( 'Regenerate Feeds', 'excellink-product-feeds' )
             );
         } elseif ( ! is_readable( $feed_path ) ) {
             $result['status'] = 'critical';
-            $result['label'] = __( 'Product feeds are not readable', 'excellink-feeds' );
+            $result['label'] = __( 'Product feeds are not readable', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
-                __( 'Product feed file exists but is not readable. Check file permissions.', 'excellink-feeds' )
+                __( 'Product feed file exists but is not readable. Check file permissions.', 'excellink-product-feeds' )
             );
         }
 
@@ -96,15 +96,15 @@ class ELF_Health_Monitor {
      */
     public static function test_feed_freshness(): array {
         $result = [
-            'label'       => __( 'Product feeds are up to date', 'excellink-feeds' ),
+            'label'       => __( 'Product feeds are up to date', 'excellink-product-feeds' ),
             'status'      => 'good',
             'badge'       => [
-                'label' => __( 'Feed Freshness', 'excellink-feeds' ),
+                'label' => __( 'Feed Freshness', 'excellink-product-feeds' ),
                 'color' => 'blue',
             ],
             'description' => sprintf(
                 '<p>%s</p>',
-                __( 'Your product feeds have been generated recently and are current.', 'excellink-feeds' )
+                __( 'Your product feeds have been generated recently and are current.', 'excellink-product-feeds' )
             ),
             'actions'     => '',
             'test'        => 'elf_feed_freshness',
@@ -114,10 +114,10 @@ class ELF_Health_Monitor {
         
         if ( empty( $last_generated ) ) {
             $result['status'] = 'recommended';
-            $result['label'] = __( 'Product feeds have never been generated', 'excellink-feeds' );
+            $result['label'] = __( 'Product feeds have never been generated', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
-                __( 'Feeds should be generated regularly to ensure product data is current.', 'excellink-feeds' )
+                __( 'Feeds should be generated regularly to ensure product data is current.', 'excellink-product-feeds' )
             );
             return $result;
         }
@@ -127,18 +127,19 @@ class ELF_Health_Monitor {
 
         if ( $hours_ago > 48 ) {
             $result['status'] = 'recommended';
-            $result['label'] = __( 'Product feeds are outdated', 'excellink-feeds' );
+            $result['label'] = __( 'Product feeds are outdated', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
                 sprintf(
-                    __( 'Your feeds were generated %d hours ago. Consider regenerating them for current product data.', 'excellink-feeds' ),
+                    // translators: %d is the number of hours since the product feeds were last generated.
+                    __( 'Your feeds were generated %d hours ago. Consider regenerating them for current product data.', 'excellink-product-feeds' ),
                     round( $hours_ago )
                 )
             );
             $result['actions'] = sprintf(
                 '<a href="%s" class="button button-primary">%s</a>',
                 admin_url( 'admin.php?page=elf-product-feeds' ),
-                __( 'Regenerate Feeds', 'excellink-feeds' )
+                __( 'Regenerate Feeds', 'excellink-product-feeds' )
             );
         }
 
@@ -152,15 +153,15 @@ class ELF_Health_Monitor {
      */
     public static function test_image_sitemap_status(): array {
         $result = [
-            'label'       => __( 'Image sitemap is accessible', 'excellink-feeds' ),
+            'label'       => __( 'Image sitemap is accessible', 'excellink-product-feeds' ),
             'status'      => 'good',
             'badge'       => [
-                'label' => __( 'Image Sitemap', 'excellink-feeds' ),
+                'label' => __( 'Image Sitemap', 'excellink-product-feeds' ),
                 'color' => 'blue',
             ],
             'description' => sprintf(
                 '<p>%s</p>',
-                __( 'Your image sitemap is generated and accessible for Google image crawling.', 'excellink-feeds' )
+                __( 'Your image sitemap is generated and accessible for Google image crawling.', 'excellink-product-feeds' )
             ),
             'actions'     => '',
             'test'        => 'elf_image_sitemap_status',
@@ -171,15 +172,15 @@ class ELF_Health_Monitor {
 
         if ( ! file_exists( $sitemap_path ) ) {
             $result['status'] = 'recommended';
-            $result['label'] = __( 'Image sitemap is not generated', 'excellink-feeds' );
+            $result['label'] = __( 'Image sitemap is not generated', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
-                __( 'No image sitemap file found. Generating an image sitemap helps Google discover your product images.', 'excellink-feeds' )
+                __( 'No image sitemap file found. Generating an image sitemap helps Google discover your product images.', 'excellink-product-feeds' )
             );
             $result['actions'] = sprintf(
                 '<a href="%s" class="button button-primary">%s</a>',
                 admin_url( 'admin.php?page=elf-product-feeds' ),
-                __( 'Regenerate Feeds', 'excellink-feeds' )
+                __( 'Regenerate Feeds', 'excellink-product-feeds' )
             );
         }
 
@@ -193,15 +194,15 @@ class ELF_Health_Monitor {
      */
     public static function test_category_mapping(): array {
         $result = [
-            'label'       => __( 'Category mapping is well configured', 'excellink-feeds' ),
+            'label'       => __( 'Category mapping is well configured', 'excellink-product-feeds' ),
             'status'      => 'good',
             'badge'       => [
-                'label' => __( 'Category Mapping', 'excellink-feeds' ),
+                'label' => __( 'Category Mapping', 'excellink-product-feeds' ),
                 'color' => 'blue',
             ],
             'description' => sprintf(
                 '<p>%s</p>',
-                __( 'Your WooCommerce categories are mapped to Google taxonomy categories.', 'excellink-feeds' )
+                __( 'Your WooCommerce categories are mapped to Google taxonomy categories.', 'excellink-product-feeds' )
             ),
             'actions'     => '',
             'test'        => 'elf_category_mapping',
@@ -215,10 +216,10 @@ class ELF_Health_Monitor {
 
         if ( is_wp_error( $categories ) || empty( $categories ) ) {
             $result['status'] = 'recommended';
-            $result['label'] = __( 'No product categories found', 'excellink-feeds' );
+            $result['label'] = __( 'No product categories found', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
-                __( 'No WooCommerce product categories found. Create categories for better product organization.', 'excellink-feeds' )
+                __( 'No WooCommerce product categories found. Create categories for better product organization.', 'excellink-product-feeds' )
             );
             return $result;
         }
@@ -237,18 +238,19 @@ class ELF_Health_Monitor {
 
         if ( $coverage < 50 ) {
             $result['status'] = 'recommended';
-            $result['label'] = __( 'Category mapping coverage is low', 'excellink-feeds' );
+            $result['label'] = __( 'Category mapping coverage is low', 'excellink-product-feeds' );
             $result['description'] = sprintf(
                 '<p>%s</p>',
                 sprintf(
-                    __( 'Only %d%% of your categories are mapped to Google taxonomy. Mapping more categories improves feed quality.', 'excellink-feeds' ),
+                    // translators: %d is the percentage of WooCommerce categories mapped to Google taxonomy.
+                    __( 'Only %d%% of your categories are mapped to Google taxonomy. Mapping more categories improves feed quality.', 'excellink-product-feeds' ),
                     round( $coverage )
                 )
             );
             $result['actions'] = sprintf(
                 '<a href="%s" class="button button-primary">%s</a>',
                 admin_url( 'admin.php?page=elf-category-map' ),
-                __( 'Map Categories', 'excellink-feeds' )
+                __( 'Map Categories', 'excellink-product-feeds' )
             );
         }
 
@@ -272,7 +274,7 @@ class ELF_Health_Monitor {
         
         if ( ! file_exists( $feed_path ) ) {
             $summary['status'] = 'critical';
-            $summary['issues'][] = __( 'Product feed not generated', 'excellink-feeds' );
+            $summary['issues'][] = __( 'Product feed not generated', 'excellink-product-feeds' );
         }
 
         // Check feed freshness
@@ -283,7 +285,7 @@ class ELF_Health_Monitor {
             
             if ( $hours_ago > 48 ) {
                 $summary['status'] = 'recommended';
-                $summary['issues'][] = __( 'Feed is outdated', 'excellink-feeds' );
+                $summary['issues'][] = __( 'Feed is outdated', 'excellink-product-feeds' );
             }
         }
 
@@ -291,8 +293,9 @@ class ELF_Health_Monitor {
         $log_counts = ELF_Logger::get_log_counts();
         if ( $log_counts['error'] > 0 ) {
             $summary['status'] = 'recommended';
+            // translators: %d is the number of error entries in the plugin log.
             $summary['issues'][] = sprintf(
-                __( '%d errors logged', 'excellink-feeds' ),
+                __( '%d errors logged', 'excellink-product-feeds' ),
                 $log_counts['error']
             );
         }

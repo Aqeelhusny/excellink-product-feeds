@@ -176,9 +176,15 @@ abstract class ELF_Feed_Generator {
             return false;
         }
 
-        if ( ! rename( $tmp, $path ) ) {
-            ELF_Logger::error( 'Failed to rename temp feed file to final path', 'feed_generation', [ 'temp' => $tmp, 'final' => $path ] );
-            @unlink( $tmp );
+        global $wp_filesystem;
+        if ( empty( $wp_filesystem ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            WP_Filesystem();
+        }
+
+        if ( ! $wp_filesystem->move( $tmp, $path, true ) ) {
+            ELF_Logger::error( 'Failed to move temp feed file to final path', 'feed_generation', [ 'temp' => $tmp, 'final' => $path ] );
+            wp_delete_file( $tmp );
             return false;
         }
 

@@ -15,9 +15,15 @@ $upload   = wp_upload_dir();
 $feed_dir = trailingslashit( $upload['basedir'] ) . 'excellink-feeds/';
 
 if ( is_dir( $feed_dir ) ) {
-    array_map( 'unlink', glob( $feed_dir . '*.xml' ) ?: [] );
-    @unlink( $feed_dir . '.htaccess' );
-    @rmdir( $feed_dir );
+    array_map( 'wp_delete_file', glob( $feed_dir . '*.xml' ) ?: [] );
+    wp_delete_file( $feed_dir . '.htaccess' );
+
+    global $wp_filesystem;
+    if ( empty( $wp_filesystem ) ) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        WP_Filesystem();
+    }
+    $wp_filesystem->rmdir( $feed_dir );
 }
 
 // Clear scheduled cron

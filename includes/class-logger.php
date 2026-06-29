@@ -85,7 +85,7 @@ class ELF_Logger {
             if ( ! empty( $data ) ) {
                 $log_message .= ' ' . json_encode( $data );
             }
-            error_log( $log_message );
+            error_log( $log_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         }
 
         // Store in internal log for admin display

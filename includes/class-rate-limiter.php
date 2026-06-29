@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
@@ -120,11 +120,11 @@ class ELF_Rate_Limiter {
         $ip = '';
         
         if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-            $ip = sanitize_text_field( $_SERVER['HTTP_CLIENT_IP'] );
+            $ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_CLIENT_IP'] ) );
         } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-            $ip = sanitize_text_field( $_SERVER['HTTP_X_FORWARDED_FOR'] );
+            $ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
         } elseif ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
-            $ip = sanitize_text_field( $_SERVER['REMOTE_ADDR'] );
+            $ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
         }
         
         return $ip ?: 'unknown';
@@ -145,9 +145,10 @@ class ELF_Rate_Limiter {
             $remaining = self::get_remaining( $identifier, $action, $limit );
             $retry_after = $window;
             
+            // translators: %d is the number of API requests remaining before the rate limit resets.
             wp_send_json_error( [
                 'message' => sprintf(
-                    __( 'Rate limit exceeded. Please try again later. %d requests remaining.', 'excellink-feeds' ),
+                    __( 'Rate limit exceeded. Please try again later. %d requests remaining.', 'excellink-product-feeds' ),
                     $remaining
                 ),
                 'retry_after' => $retry_after,
