@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 if ( ! current_user_can( 'manage_options' ) ) return;
 
 $logs = ELF_Logger::get_logs();

@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Health monitoring system for feed generation.

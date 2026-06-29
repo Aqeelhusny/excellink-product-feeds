@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Error logging system for feed generation and plugin operations.
