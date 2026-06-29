@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Rate limiting for AJAX endpoints to prevent abuse.
