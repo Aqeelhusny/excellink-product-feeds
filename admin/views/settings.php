@@ -226,6 +226,18 @@ $skipped_no_price     = (int) get_option( 'elf_feed_skipped_no_price', -1 );
                             <p class="description"><?php esc_html_e( 'Used when no brand attribute is set on the product.', 'excellink-feeds' ); ?></p>
                         </td>
                     </tr>
+
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Enable Logging', 'excellink-feeds' ); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="enable_logging" value="yes"
+                                    <?php checked( ( $settings['enable_logging'] ?? 'no' ), 'yes' ); ?>>
+                                <?php esc_html_e( 'Enable plugin logging', 'excellink-feeds' ); ?>
+                            </label>
+                            <p class="description"><?php esc_html_e( 'When enabled, the plugin logs feed generation events, errors, and warnings. Disable to reduce database writes in production.', 'excellink-feeds' ); ?></p>
+                        </td>
+                    </tr>
                 </table>
 
                 <p class="submit">

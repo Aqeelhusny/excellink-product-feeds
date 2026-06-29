@@ -12,6 +12,14 @@ class ELF_Logger {
     private const MAX_LOG_ENTRIES = 100;
 
     /**
+     * Check if logging is enabled in plugin settings.
+     */
+    public static function is_enabled(): bool {
+        $settings = get_option( 'elf_settings', [] );
+        return ( $settings['enable_logging'] ?? 'no' ) === 'yes';
+    }
+
+    /**
      * Log an error message.
      *
      * @param string $message The error message
@@ -53,6 +61,10 @@ class ELF_Logger {
      * @param array $data Additional data
      */
     private static function log( string $level, string $message, string $context, array $data ): void {
+        if ( ! self::is_enabled() ) {
+            return;
+        }
+
         $timestamp = current_time( 'mysql' );
         $entry = [
             'timestamp' => $timestamp,

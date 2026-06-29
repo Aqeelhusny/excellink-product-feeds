@@ -48,6 +48,7 @@ function elf_activate(): void {
         'include_out_of_stock' => 'no',
         'condition'            => 'new',
         'brand_fallback'       => get_bloginfo( 'name' ),
+        'enable_logging'       => 'no',
     ]);
 
     if ( ! wp_next_scheduled( 'elf_generate_feeds_cron' ) ) {

@@ -49,10 +49,14 @@
         $btn.prop('disabled', true);
         setStatus($status, elfData.i18n.saving, '');
 
-        // Normalise checkbox (serializeArray omits unchecked)
+        // Normalise checkboxes (serializeArray omits unchecked)
         var hasStock = data.some(function (f) { return f.name === 'include_out_of_stock'; });
         if (!hasStock) {
             data.push({ name: 'include_out_of_stock', value: 'no' });
+        }
+        var hasLogging = data.some(function (f) { return f.name === 'enable_logging'; });
+        if (!hasLogging) {
+            data.push({ name: 'enable_logging', value: 'no' });
         }
 
         data.push({ name: 'action', value: 'elf_save_settings' });

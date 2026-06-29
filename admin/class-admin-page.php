@@ -134,6 +134,7 @@ class ELF_Admin_Page {
             'include_out_of_stock' => sanitize_key( $_POST['include_out_of_stock'] ?? 'no' ),
             'condition'            => sanitize_text_field( $_POST['condition'] ?? 'new' ),
             'brand_fallback'       => sanitize_text_field( $_POST['brand_fallback'] ?? get_bloginfo( 'name' ) ),
+            'enable_logging'       => sanitize_key( $_POST['enable_logging'] ?? 'no' ),
         ];
 
         // Clamp batch size
@@ -300,6 +301,7 @@ class ELF_Admin_Page {
                 'include_out_of_stock' => sanitize_key( $settings['elf_settings']['include_out_of_stock'] ?? 'no' ),
                 'condition'            => sanitize_text_field( $settings['elf_settings']['condition'] ?? 'new' ),
                 'brand_fallback'       => sanitize_text_field( $settings['elf_settings']['brand_fallback'] ?? get_bloginfo( 'name' ) ),
+                'enable_logging'       => sanitize_key( $settings['elf_settings']['enable_logging'] ?? 'no' ),
             ];
             
             // Clamp batch size
