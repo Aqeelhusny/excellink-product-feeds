@@ -1,0 +1,227 @@
+.elf-wrap {
+    max-width: 1100px;
+}
+
+.elf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+@media ( max-width: 960px ) {
+    .elf-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.elf-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    position: relative;
+    isolation: isolate;
+}
+
+.elf-card h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #1d2327;
+}
+
+/* Feed URL table */
+.elf-feed-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+.elf-feed-table th {
+    width: 160px;
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 12px 10px 0;
+    font-weight: 600;
+    font-size: 13px;
+    color: #3c434a;
+}
+
+.elf-feed-table td {
+    padding: 10px 0;
+    vertical-align: top;
+}
+
+.elf-feed-url {
+    display: inline-block;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: #f6f7f7;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    vertical-align: middle;
+    cursor: text;
+}
+
+/* Badges */
+.elf-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+.elf-badge--ok {
+    background: #d1e7dd;
+    color: #0a3622;
+}
+
+.elf-badge--warn {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+/* Inline status messages */
+.elf-inline-status {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 13px;
+    color: #2271b1;
+    vertical-align: middle;
+    transition: opacity .3s;
+}
+
+.elf-inline-status.is-error {
+    color: #d63638;
+}
+
+.elf-inline-status.is-success {
+    color: #00a32a;
+}
+
+.elf-feed-meta {
+    color: #50575e;
+    font-size: 13px;
+    margin: -4px 0 12px;
+}
+
+.elf-platform-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #f6f7f7;
+    border-left: 3px solid #2271b1;
+    border-radius: 0 3px 3px 0;
+    font-size: 13px;
+}
+
+.elf-platform-note ul {
+    margin: 6px 0 0 16px;
+    padding: 0;
+    list-style: disc;
+}
+
+.elf-platform-note li {
+    margin-bottom: 4px;
+}
+
+/* Category mapper */
+.elf-cat-table th,
+.elf-cat-table td {
+    padding: 10px 14px;
+    vertical-align: middle;
+}
+
+.elf-cat-table tbody tr:nth-child(odd) {
+    background: #f9f9f9;
+}
+
+.elf-muted {
+    color: #8c8f94;
+}
+
+/* Per-row taxonomy search */
+.elf-tax-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.elf-tax-search {
+    min-width: 320px;
+    max-width: 100%;
+}
+
+.elf-tax-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 9999;
+    min-width: 340px;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 3px 8px rgba(0,0,0,.12);
+}
+
+.elf-tax-result {
+    padding: 7px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.elf-tax-result:last-child {
+    border-bottom: none;
+}
+
+.elf-tax-result:hover {
+    background: #2271b1;
+    color: #fff;
+}
+
+.elf-mapped-badge {
+    flex-shrink: 0;
+}
+
+/* Override WP admin's transition:all on .button — prevents Playwright/browser stability issues */
+.elf-wrap .button,
+.elf-wrap button {
+    transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+}
+
+/* Copy button feedback */
+.elf-copy-btn.copied {
+    background: #00a32a;
+    border-color: #00a32a;
+    color: #fff;
+}
+
+/* Import/Export buttons */
+.elf-import-export-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
