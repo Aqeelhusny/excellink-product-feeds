@@ -33,7 +33,12 @@ class ELF_Unified_Feed extends ELF_Feed_Generator {
 
         if ( $ok ) {
             // Validate the generated feed
-            $feed_content = file_get_contents( $this->get_feed_path() );
+            global $wp_filesystem;
+            if ( empty( $wp_filesystem ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+                WP_Filesystem();
+            }
+            $feed_content = $wp_filesystem->get_contents( $this->get_feed_path() );
             if ( $feed_content ) {
                 $validation = ELF_Feed_Validator::validate_feed( $feed_content );
                 

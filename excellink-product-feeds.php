@@ -41,7 +41,12 @@ function elf_activate(): void {
         wp_mkdir_p( $feed_dir );
     }
     if ( ! file_exists( $feed_dir . '.htaccess' ) ) {
-        file_put_contents( $feed_dir . '.htaccess', 'Options -Indexes' . PHP_EOL );
+        global $wp_filesystem;
+        if ( empty( $wp_filesystem ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            WP_Filesystem();
+        }
+        $wp_filesystem->put_contents( $feed_dir . '.htaccess', 'Options -Indexes' . PHP_EOL, FS_CHMOD_FILE );
     }
 
     add_option( 'elf_settings', [

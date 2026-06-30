@@ -145,9 +145,9 @@ class ELF_Rate_Limiter {
             $remaining = self::get_remaining( $identifier, $action, $limit );
             $retry_after = $window;
             
-            // translators: %d is the number of API requests remaining before the rate limit resets.
             wp_send_json_error( [
                 'message' => sprintf(
+                    // translators: %d is the number of API requests remaining before the rate limit resets.
                     __( 'Rate limit exceeded. Please try again later. %d requests remaining.', 'excellink-product-feeds' ),
                     $remaining
                 ),

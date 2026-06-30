@@ -181,8 +181,8 @@ class ELF_Admin_Page {
             ]);
             
             wp_send_json_success( [
-                // translators: %s is the number of seconds the operation took.
                 'message' => sprintf(
+                    // translators: %s is the number of seconds the operation took.
                     __( 'Feed and image sitemap regenerated successfully in %s seconds.', 'excellink-product-feeds' ),
                     $duration
                 ),
@@ -283,7 +283,7 @@ class ELF_Admin_Page {
 
         ELF_Rate_Limiter::check_ajax_limit( 'elf_import_settings', 10, MINUTE_IN_SECONDS );
 
-        $settings_json = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+        $settings_json = isset( $_POST['settings'] ) ? sanitize_textarea_field( wp_unslash( $_POST['settings'] ) ) : '';
         
         if ( empty( $settings_json ) ) {
             wp_send_json_error( [ 'message' => __( 'No settings data provided.', 'excellink-product-feeds' ) ] );

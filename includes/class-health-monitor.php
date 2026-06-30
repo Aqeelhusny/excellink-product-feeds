@@ -293,8 +293,8 @@ class ELF_Health_Monitor {
         $log_counts = ELF_Logger::get_log_counts();
         if ( $log_counts['error'] > 0 ) {
             $summary['status'] = 'recommended';
-            // translators: %d is the number of error entries in the plugin log.
             $summary['issues'][] = sprintf(
+                // translators: %d is the number of error entries in the plugin log.
                 __( '%d errors logged', 'excellink-product-feeds' ),
                 $log_counts['error']
             );

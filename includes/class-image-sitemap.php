@@ -95,7 +95,12 @@ class ELF_Image_Sitemap {
         
         if ( $result ) {
             // Validate the generated sitemap
-            $sitemap_content = file_get_contents( $this->get_sitemap_path() );
+            global $wp_filesystem;
+            if ( empty( $wp_filesystem ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+                WP_Filesystem();
+            }
+            $sitemap_content = $wp_filesystem->get_contents( $this->get_sitemap_path() );
             if ( $sitemap_content ) {
                 $validation = ELF_Feed_Validator::validate_sitemap( $sitemap_content );
                 
@@ -240,14 +245,14 @@ class ELF_Image_Sitemap {
         $tmp = $path . '.tmp';
         $xml = $dom->saveXML();
 
-        if ( false === file_put_contents( $tmp, $xml ) ) {
-            return false;
-        }
-
         global $wp_filesystem;
         if ( empty( $wp_filesystem ) ) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
             WP_Filesystem();
+        }
+
+        if ( ! $wp_filesystem->put_contents( $tmp, $xml, FS_CHMOD_FILE ) ) {
+            return false;
         }
 
         return $wp_filesystem->move( $tmp, $path, true );

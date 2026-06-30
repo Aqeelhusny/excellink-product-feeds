@@ -142,7 +142,7 @@ if ( $filter_level ) {
                                 <td><?php echo esc_html( $entry['message'] ); ?></td>
                                 <td>
                                     <?php if ( ! empty( $entry['data'] ) ) : ?>
-                                        <code><?php echo esc_html( json_encode( $entry['data'], JSON_PRETTY_PRINT ) ); ?></code>
+                                        <code><?php echo esc_html( wp_json_encode( $entry['data'], JSON_PRETTY_PRINT ) ); ?></code>
                                     <?php else : ?>
                                         <em><?php esc_html_e( 'No data', 'excellink-product-feeds' ); ?></em>
                                     <?php endif; ?>

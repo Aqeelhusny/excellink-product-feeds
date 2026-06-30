@@ -60,9 +60,8 @@ $skipped_no_price     = (int) get_option( 'elf_feed_skipped_no_price', -1 );
 
             <?php if ( $feed_exists ) : ?>
                 <p class="elf-feed-meta">
-                    <?php
-                    // translators: %1$d is the number of products in the feed, %2$s is the last generation date/time.
-                    printf(
+                    <?php printf(
+                        // translators: %1$d is the number of products in the feed, %2$s is the last generation date/time.
                         esc_html__( '%1$d products in feed &middot; Last generated: %2$s', 'excellink-product-feeds' ),
                         absint( $feed_count ),
                         esc_html( $last_gen ?: __( 'Never', 'excellink-product-feeds' ) )
@@ -72,9 +71,8 @@ $skipped_no_price     = (int) get_option( 'elf_feed_skipped_no_price', -1 );
                 <?php if ( $skipped_no_image > 0 ) : ?>
                     <div class="notice notice-warning inline" style="margin:8px 0 4px;">
                         <p>
-                            <strong><?php
-                            // translators: %d is the number of products excluded from the feed due to missing image.
-                            printf(
+                            <strong><?php printf(
+                                // translators: %d is the number of products excluded from the feed due to missing image.
                                 esc_html__( '%d product(s) excluded — no image.', 'excellink-product-feeds' ),
                                 absint( $skipped_no_image )
                             ); ?></strong>
@@ -86,9 +84,8 @@ $skipped_no_price     = (int) get_option( 'elf_feed_skipped_no_price', -1 );
                 <?php if ( $skipped_no_price > 0 ) : ?>
                     <div class="notice notice-warning inline" style="margin:8px 0 4px;">
                         <p>
-                            <strong><?php
-                            // translators: %d is the number of products excluded from the feed due to missing price.
-                            printf(
+                            <strong><?php printf(
+                                // translators: %d is the number of products excluded from the feed due to missing price.
                                 esc_html__( '%d product(s) excluded — no regular price.', 'excellink-product-feeds' ),
                                 absint( $skipped_no_price )
                             ); ?></strong>

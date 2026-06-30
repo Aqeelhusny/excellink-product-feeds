@@ -170,16 +170,15 @@ abstract class ELF_Feed_Generator {
             return false;
         }
 
-        $write_result = file_put_contents( $tmp, $xml );
-        if ( false === $write_result ) {
-            ELF_Logger::error( 'Failed to write temp feed file', 'feed_generation', [ 'path' => $tmp ] );
-            return false;
-        }
-
         global $wp_filesystem;
         if ( empty( $wp_filesystem ) ) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
             WP_Filesystem();
+        }
+
+        if ( ! $wp_filesystem->put_contents( $tmp, $xml, FS_CHMOD_FILE ) ) {
+            ELF_Logger::error( 'Failed to write temp feed file', 'feed_generation', [ 'path' => $tmp ] );
+            return false;
         }
 
         if ( ! $wp_filesystem->move( $tmp, $path, true ) ) {

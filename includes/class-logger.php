@@ -83,7 +83,7 @@ class ELF_Logger {
                 $message
             );
             if ( ! empty( $data ) ) {
-                $log_message .= ' ' . json_encode( $data );
+                $log_message .= ' ' . wp_json_encode( $data );
             }
             error_log( $log_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         }
