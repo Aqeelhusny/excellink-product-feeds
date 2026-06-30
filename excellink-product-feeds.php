@@ -116,6 +116,13 @@ function elf_init(): void {
     ELF_Cron_Handler::init();
     ELF_Health_Monitor::init();
 
+    // Backfill enable_logging for installs that pre-date this setting.
+    $elf_settings = get_option( 'elf_settings', [] );
+    if ( ! isset( $elf_settings['enable_logging'] ) ) {
+        $elf_settings['enable_logging'] = 'no';
+        update_option( 'elf_settings', $elf_settings );
+    }
+
     if ( is_admin() ) {
         require_once ELF_PLUGIN_DIR . 'admin/class-admin-page.php';
         ELF_Admin_Page::init();
