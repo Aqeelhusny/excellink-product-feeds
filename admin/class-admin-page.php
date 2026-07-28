@@ -18,10 +18,12 @@ class ELF_Admin_Page {
         add_action( 'wp_ajax_elf_clear_logs',        [ __CLASS__, 'ajax_clear_logs' ] );
     }
 
-    /** Only allow schedules WP-Cron actually knows about, else wp_schedule_event() fails silently. */
-    private static function sanitize_schedule( string $value ): string {
-        $value = sanitize_key( $value );
-        return array_key_exists( $value, wp_get_schedules() ) ? $value : 'daily';
+    /**
+     * Restricts an already-sanitized schedule key to ones WP-Cron actually
+     * knows about, else wp_schedule_event() fails silently later.
+     */
+    private static function restrict_to_known_schedule( string $sanitized_value ): string {
+        return array_key_exists( $sanitized_value, wp_get_schedules() ) ? $sanitized_value : 'daily';
     }
 
     public static function register_menu(): void {
@@ -135,13 +137,16 @@ class ELF_Admin_Page {
         ELF_Rate_Limiter::check_ajax_limit( 'elf_save_settings', 30, MINUTE_IN_SECONDS );
 
         $settings = [
-            'schedule'             => self::sanitize_schedule( wp_unslash( $_POST['schedule'] ?? 'daily' ) ),
+            'schedule'             => sanitize_key( wp_unslash( $_POST['schedule'] ?? 'daily' ) ),
             'batch_size'           => absint( wp_unslash( $_POST['batch_size'] ?? 200 ) ),
             'include_out_of_stock' => sanitize_key( wp_unslash( $_POST['include_out_of_stock'] ?? 'no' ) ),
             'condition'            => sanitize_text_field( wp_unslash( $_POST['condition'] ?? 'new' ) ),
             'brand_fallback'       => sanitize_text_field( wp_unslash( $_POST['brand_fallback'] ?? get_bloginfo( 'name' ) ) ),
             'enable_logging'       => sanitize_key( wp_unslash( $_POST['enable_logging'] ?? 'no' ) ),
         ];
+
+        // Restrict to schedules WP-Cron actually knows about, else wp_schedule_event() fails silently.
+        $settings['schedule'] = self::restrict_to_known_schedule( $settings['schedule'] );
 
         // Clamp batch size
         $settings['batch_size'] = min( 1000, max( 50, $settings['batch_size'] ) );
@@ -304,7 +309,7 @@ class ELF_Admin_Page {
         // Import main settings
         if ( isset( $settings['elf_settings'] ) && is_array( $settings['elf_settings'] ) ) {
             $imported_settings = [
-                'schedule'             => self::sanitize_schedule( $settings['elf_settings']['schedule'] ?? 'daily' ),
+                'schedule'             => self::restrict_to_known_schedule( sanitize_key( $settings['elf_settings']['schedule'] ?? 'daily' ) ),
                 'batch_size'           => absint( $settings['elf_settings']['batch_size'] ?? 200 ),
                 'include_out_of_stock' => sanitize_key( $settings['elf_settings']['include_out_of_stock'] ?? 'no' ),
                 'condition'            => sanitize_text_field( $settings['elf_settings']['condition'] ?? 'new' ),
