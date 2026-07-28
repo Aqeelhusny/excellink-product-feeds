@@ -174,13 +174,13 @@ $skipped_no_price     = (int) get_option( 'elf_feed_skipped_no_price', -1 );
 
                     <tr>
                         <th scope="row">
-                            <label for="elf-batch-size"><?php esc_html_e( 'Products per Feed', 'excellink-product-feeds' ); ?></label>
+                            <label for="elf-batch-size"><?php esc_html_e( 'Processing Batch Size', 'excellink-product-feeds' ); ?></label>
                         </th>
                         <td>
                             <input type="number" name="batch_size" id="elf-batch-size"
                                    value="<?php echo absint( $settings['batch_size'] ?? 200 ); ?>"
                                    min="50" max="1000" class="small-text">
-                            <p class="description"><?php esc_html_e( 'Max products per feed (50–1000).', 'excellink-product-feeds' ); ?></p>
+                            <p class="description"><?php esc_html_e( 'Products fetched per internal query page (50–1000). All matching products are always included in the feed — this only tunes memory/performance.', 'excellink-product-feeds' ); ?></p>
                         </td>
                     </tr>
 

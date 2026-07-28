@@ -42,43 +42,60 @@ abstract class ELF_Feed_Generator {
 
     // ── Product loading ───────────────────────────────────────────────────────
 
+    /**
+     * Loads every matching product, paginating internally so no product is
+     * ever silently dropped from the feed. `batch_size` controls the page
+     * size used for each wc_get_products() call (memory/perf tuning), not a
+     * cap on the total number of products included.
+     */
     protected function load_products(): array {
-        $args = [
-            'status'   => 'publish',
-            'type'     => [ 'simple', 'variable' ],
-            'limit'    => $this->batch_size,
-            'paginate' => false,
-            'return'   => 'ids',   // IDs only — avoid loading full objects twice
-        ];
+        $page_size = $this->batch_size > 0 ? $this->batch_size : 200;
+        $products  = [];
+        $page      = 1;
 
-        if ( ! $this->include_out_of_stock ) {
-            $args['stock_status'] = 'instock';
-        }
+        do {
+            $args = [
+                'status'   => 'publish',
+                'type'     => [ 'simple', 'variable' ],
+                'limit'    => $page_size,
+                'page'     => $page,
+                'paginate' => false,
+                'return'   => 'ids',   // IDs only — avoid loading full objects twice
+            ];
 
-        $ids = wc_get_products( $args );
-
-        // Prime WordPress object caches for posts + meta in two bulk queries
-        _prime_post_caches( $ids, false, true );
-        update_object_term_cache( $ids, 'product' );
-
-        $products = [];
-        foreach ( $ids as $id ) {
-            $product = wc_get_product( $id );
-            if ( ! $product ) continue;
-
-            if ( $product->is_type( 'variable' ) ) {
-                $variation_ids = $product->get_children();
-                // Prime variation caches before instantiating
-                _prime_post_caches( $variation_ids, false, true );
-                update_object_term_cache( $variation_ids, 'product_variation' );
-
-                foreach ( $product->get_available_variations( 'objects' ) as $variation ) {
-                    $products[] = $variation;
-                }
-            } else {
-                $products[] = $product;
+            if ( ! $this->include_out_of_stock ) {
+                $args['stock_status'] = 'instock';
             }
-        }
+
+            $ids = wc_get_products( $args );
+            if ( empty( $ids ) ) {
+                break;
+            }
+
+            // Prime WordPress object caches for posts + meta in two bulk queries
+            _prime_post_caches( $ids, false, true );
+            update_object_term_cache( $ids, 'product' );
+
+            foreach ( $ids as $id ) {
+                $product = wc_get_product( $id );
+                if ( ! $product ) continue;
+
+                if ( $product->is_type( 'variable' ) ) {
+                    $variation_ids = $product->get_children();
+                    // Prime variation caches before instantiating
+                    _prime_post_caches( $variation_ids, false, true );
+                    update_object_term_cache( $variation_ids, 'product_variation' );
+
+                    foreach ( $product->get_available_variations( 'objects' ) as $variation ) {
+                        $products[] = $variation;
+                    }
+                } else {
+                    $products[] = $product;
+                }
+            }
+
+            $page++;
+        } while ( count( $ids ) === $page_size );
 
         // Prime all attachment image caches in one shot
         $this->prime_image_cache( $products );
@@ -262,8 +279,27 @@ abstract class ELF_Feed_Generator {
 
         if ( ! in_array( $len, [ 8, 12, 13, 14 ], true ) ) return '';
         if ( ltrim( $gtin, '0' ) === '' ) return ''; // reject all-zeros
+        if ( ! $this->is_valid_gtin_checksum( $gtin ) ) return '';
 
         return $gtin;
+    }
+
+    /**
+     * GTIN-8/12/13/14 use the same mod-10 check-digit algorithm (weights
+     * alternate 3/1 from the rightmost digit). Rejecting bad checksums here
+     * stops known-invalid GTINs from ever reaching Google/Facebook, where
+     * they'd otherwise be silently rejected at ingestion.
+     */
+    private function is_valid_gtin_checksum( string $gtin ): bool {
+        $digits = array_map( 'intval', str_split( $gtin ) );
+        $check  = array_pop( $digits );
+        $sum    = 0;
+
+        foreach ( array_reverse( $digits ) as $i => $digit ) {
+            $sum += $digit * ( $i % 2 === 0 ? 3 : 1 );
+        }
+
+        return ( ( 10 - ( $sum % 10 ) ) % 10 ) === $check;
     }
 
     protected function clean_description( string $text ): string {

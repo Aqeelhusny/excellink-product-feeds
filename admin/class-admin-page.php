@@ -18,6 +18,12 @@ class ELF_Admin_Page {
         add_action( 'wp_ajax_elf_clear_logs',        [ __CLASS__, 'ajax_clear_logs' ] );
     }
 
+    /** Only allow schedules WP-Cron actually knows about, else wp_schedule_event() fails silently. */
+    private static function sanitize_schedule( string $value ): string {
+        $value = sanitize_key( $value );
+        return array_key_exists( $value, wp_get_schedules() ) ? $value : 'daily';
+    }
+
     public static function register_menu(): void {
         add_menu_page(
             __( 'Product Feeds', 'excellink-product-feeds' ),
@@ -129,7 +135,7 @@ class ELF_Admin_Page {
         ELF_Rate_Limiter::check_ajax_limit( 'elf_save_settings', 30, MINUTE_IN_SECONDS );
 
         $settings = [
-            'schedule'             => sanitize_key( wp_unslash( $_POST['schedule'] ?? 'daily' ) ),
+            'schedule'             => self::sanitize_schedule( wp_unslash( $_POST['schedule'] ?? 'daily' ) ),
             'batch_size'           => absint( wp_unslash( $_POST['batch_size'] ?? 200 ) ),
             'include_out_of_stock' => sanitize_key( wp_unslash( $_POST['include_out_of_stock'] ?? 'no' ) ),
             'condition'            => sanitize_text_field( wp_unslash( $_POST['condition'] ?? 'new' ) ),
@@ -298,7 +304,7 @@ class ELF_Admin_Page {
         // Import main settings
         if ( isset( $settings['elf_settings'] ) && is_array( $settings['elf_settings'] ) ) {
             $imported_settings = [
-                'schedule'             => sanitize_key( $settings['elf_settings']['schedule'] ?? 'daily' ),
+                'schedule'             => self::sanitize_schedule( $settings['elf_settings']['schedule'] ?? 'daily' ),
                 'batch_size'           => absint( $settings['elf_settings']['batch_size'] ?? 200 ),
                 'include_out_of_stock' => sanitize_key( $settings['elf_settings']['include_out_of_stock'] ?? 'no' ),
                 'condition'            => sanitize_text_field( $settings['elf_settings']['condition'] ?? 'new' ),

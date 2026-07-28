@@ -16,130 +16,72 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *    stores that frequently update product photos.
  *  - Every product URL lists ALL its images (featured + gallery + variation
  *    images), so Google discovers photos that may not be linked in the HTML.
+ *
+ * Extends ELF_Feed_Generator to reuse the shared, paginated product loader
+ * and the atomic tmp-file write path instead of duplicating them.
  */
-class ELF_Image_Sitemap {
+class ELF_Image_Sitemap extends ELF_Feed_Generator {
 
-    private const SITEMAP_FILENAME = 'image-sitemap.xml';
-    private const SITEMAP_NS       = 'http://www.sitemaps.org/schemas/sitemap/0.9';
-    private const IMAGE_NS         = 'http://www.google.com/schemas/sitemap-image/1.1';
-
-    private int    $batch_size;
-    private bool   $include_out_of_stock;
+    private const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+    private const IMAGE_NS   = 'http://www.google.com/schemas/sitemap-image/1.1';
 
     public function __construct() {
-        $settings                   = get_option( 'elf_settings', [] );
-        $this->batch_size           = absint( $settings['batch_size'] ?? 200 );
-        $this->include_out_of_stock = ( ( $settings['include_out_of_stock'] ?? 'no' ) === 'yes' );
+        parent::__construct();
+        $this->feed_filename = 'image-sitemap.xml';
     }
 
     public function get_sitemap_url(): string {
-        $upload = wp_upload_dir();
-        return trailingslashit( $upload['baseurl'] ) . 'excellink-feeds/' . self::SITEMAP_FILENAME;
+        return $this->get_feed_url();
     }
 
     public function get_sitemap_path(): string {
-        $upload = wp_upload_dir();
-        return trailingslashit( $upload['basedir'] ) . 'excellink-feeds/' . self::SITEMAP_FILENAME;
+        return $this->get_feed_path();
     }
 
     public function generate(): bool {
         ELF_Logger::info( 'Starting image sitemap generation', 'sitemap_generation' );
-        
-        $ids = $this->load_product_ids();
-        if ( empty( $ids ) ) {
+
+        $products = $this->load_products();
+        if ( empty( $products ) ) {
             ELF_Logger::warning( 'No products found for sitemap generation', 'sitemap_generation' );
             return false;
         }
 
-        ELF_Logger::info( 'Loaded products for sitemap generation', 'sitemap_generation', [ 'count' => count( $ids ) ] );
+        ELF_Logger::info( 'Loaded products for sitemap generation', 'sitemap_generation', [ 'count' => count( $products ) ] );
 
-        // Bulk-prime all product meta and term caches before the loop
-        _prime_post_caches( $ids, false, true );
-        update_object_term_cache( $ids, 'product' );
-
-        // Collect every attachment ID we'll need across all products
-        $attachment_ids = [];
-        $products       = [];
-
-        foreach ( $ids as $id ) {
-            $product = wc_get_product( $id );
-            if ( ! $product ) continue;
-            $products[] = $product;
-
-            $img = $product->get_image_id();
-            if ( $img ) $attachment_ids[] = (int) $img;
-            foreach ( $product->get_gallery_image_ids() as $gid ) {
-                $attachment_ids[] = (int) $gid;
-            }
-
-            if ( $product->is_type( 'variable' ) ) {
-                $var_ids = $product->get_children();
-                if ( ! empty( $var_ids ) ) {
-                    _prime_post_caches( $var_ids, false, true );
-                    foreach ( $product->get_available_variations( 'objects' ) as $variation ) {
-                        $vid = $variation->get_image_id();
-                        if ( $vid ) $attachment_ids[] = (int) $vid;
-                    }
-                }
-            }
-        }
-
-        // Prime all attachment meta in one query — covers _wp_attached_file,
-        // _wp_attachment_metadata (needed by wp_get_original_image_url), and alt text
-        if ( ! empty( $attachment_ids ) ) {
-            _prime_post_caches( array_unique( $attachment_ids ), false, true );
-        }
-
-        $dom = $this->build_dom( $products );
+        $dom    = $this->build_dom( $products );
         $result = $this->write_dom( $dom );
-        
+
         if ( $result ) {
-            // Validate the generated sitemap
             global $wp_filesystem;
             if ( empty( $wp_filesystem ) ) {
                 require_once ABSPATH . 'wp-admin/includes/file.php';
                 WP_Filesystem();
             }
-            $sitemap_content = $wp_filesystem->get_contents( $this->get_sitemap_path() );
+            $sitemap_content = $wp_filesystem->get_contents( $this->get_feed_path() );
             if ( $sitemap_content ) {
                 $validation = ELF_Feed_Validator::validate_sitemap( $sitemap_content );
-                
+
                 if ( ! $validation['valid'] ) {
                     ELF_Logger::error( 'Sitemap validation failed', 'sitemap_validation', [
-                        'errors' => $validation['errors']
+                        'errors' => $validation['errors'],
                     ] );
                 } elseif ( ! empty( $validation['warnings'] ) ) {
                     ELF_Logger::warning( 'Sitemap validation warnings', 'sitemap_validation', [
-                        'warnings' => $validation['warnings']
+                        'warnings' => $validation['warnings'],
                     ] );
                 }
             }
-            
+
             ELF_Logger::info( 'Image sitemap generated successfully', 'sitemap_generation', [ 'product_count' => count( $products ) ] );
         } else {
             ELF_Logger::error( 'Image sitemap generation failed', 'sitemap_generation' );
         }
-        
+
         return $result;
     }
 
-    private function load_product_ids(): array {
-        $args = [
-            'status'   => 'publish',
-            'type'     => [ 'simple', 'variable' ],
-            'limit'    => $this->batch_size,
-            'paginate' => false,
-            'return'   => 'ids',
-        ];
-
-        if ( ! $this->include_out_of_stock ) {
-            $args['stock_status'] = 'instock';
-        }
-
-        return wc_get_products( $args );
-    }
-
-    private function build_dom( array $products ): DOMDocument {
+    protected function build_dom( array $products ): DOMDocument {
         $dom = new DOMDocument( '1.0', 'UTF-8' );
         $dom->formatOutput = true;
 
@@ -151,8 +93,17 @@ class ELF_Image_Sitemap {
         );
         $dom->appendChild( $urlset );
 
+        // load_products() flattens variable products into individual variation
+        // objects (needed for the shopping feed). For the sitemap we want one
+        // <url> per product page, so group variations back under their parent.
+        $by_parent = [];
         foreach ( $products as $product ) {
-            $url_el = $this->build_url_entry( $dom, $product );
+            $parent_id = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+            $by_parent[ $parent_id ][] = $product;
+        }
+
+        foreach ( $by_parent as $parent_id => $group ) {
+            $url_el = $this->build_url_entry( $dom, (int) $parent_id, $group );
             if ( $url_el ) {
                 $urlset->appendChild( $url_el );
             }
@@ -161,26 +112,25 @@ class ELF_Image_Sitemap {
         return $dom;
     }
 
-    private function build_url_entry( DOMDocument $dom, WC_Product $product ): ?DOMElement {
-        $permalink = esc_url_raw( get_permalink( $product->get_id() ) );
+    /** @param WC_Product[] $group The parent product and/or its variations. */
+    private function build_url_entry( DOMDocument $dom, int $parent_id, array $group ): ?DOMElement {
+        $permalink = esc_url_raw( get_permalink( $parent_id ) );
         if ( ! $permalink ) return null;
 
-        // Collect all image IDs: featured → gallery → variation-specific
-        $image_ids = [];
-        $main_id   = (int) $product->get_image_id();
+        $image_ids        = [];
+        $latest_modified  = null;
 
-        if ( $main_id ) $image_ids[] = $main_id;
+        foreach ( $group as $product ) {
+            $img_id = (int) $product->get_image_id();
+            if ( $img_id ) $image_ids[] = $img_id;
 
-        foreach ( $product->get_gallery_image_ids() as $gid ) {
-            $image_ids[] = (int) $gid;
-        }
+            foreach ( $product->get_gallery_image_ids() as $gid ) {
+                $image_ids[] = (int) $gid;
+            }
 
-        if ( $product->is_type( 'variable' ) ) {
-            foreach ( $product->get_available_variations( 'objects' ) as $variation ) {
-                $vid = (int) $variation->get_image_id();
-                if ( $vid && $vid !== $main_id ) {
-                    $image_ids[] = $vid;
-                }
+            $modified = $product->get_date_modified();
+            if ( $modified && ( ! $latest_modified || $modified->getTimestamp() > $latest_modified->getTimestamp() ) ) {
+                $latest_modified = $modified;
             }
         }
 
@@ -194,15 +144,16 @@ class ELF_Image_Sitemap {
         $url_el->appendChild( $loc );
 
         // lastmod — W3C date format (YYYY-MM-DD)
-        $modified = $product->get_date_modified();
-        if ( $modified ) {
+        if ( $latest_modified ) {
             $lastmod = $dom->createElement( 'lastmod' );
-            $lastmod->appendChild( $dom->createTextNode( $modified->date( 'Y-m-d' ) ) );
+            $lastmod->appendChild( $dom->createTextNode( $latest_modified->date( 'Y-m-d' ) ) );
             $url_el->appendChild( $lastmod );
         }
 
+        $product_name = get_the_title( $parent_id );
+
         foreach ( $image_ids as $img_id ) {
-            $url = $this->get_stable_image_url( $img_id );
+            $url = ELF_Image_Helper::get_stable_image_url( $img_id );
             if ( ! $url ) continue;
 
             $image_el = $dom->createElementNS( self::IMAGE_NS, 'image:image' );
@@ -213,7 +164,7 @@ class ELF_Image_Sitemap {
 
             // image:title — alt text is more descriptive; fall back to product name
             $alt        = get_post_meta( $img_id, '_wp_attachment_image_alt', true );
-            $title_text = sanitize_text_field( $alt ?: $product->get_name() );
+            $title_text = sanitize_text_field( $alt ?: $product_name );
             if ( $title_text ) {
                 $image_title = $dom->createElementNS( self::IMAGE_NS, 'image:title' );
                 $image_title->appendChild( $dom->createCDATASection( $title_text ) );
@@ -224,37 +175,5 @@ class ELF_Image_Sitemap {
         }
 
         return $url_el;
-    }
-
-    /**
-     * Returns a stable, crawlable image URL.
-     * Uses the shared ELF_Image_Helper for consistency.
-     */
-    private function get_stable_image_url( int $attachment_id ): string {
-        return ELF_Image_Helper::get_stable_image_url( $attachment_id );
-    }
-
-    private function write_dom( DOMDocument $dom ): bool {
-        $path = $this->get_sitemap_path();
-        $dir  = dirname( $path );
-
-        if ( ! is_dir( $dir ) ) {
-            wp_mkdir_p( $dir );
-        }
-
-        $tmp = $path . '.tmp';
-        $xml = $dom->saveXML();
-
-        global $wp_filesystem;
-        if ( empty( $wp_filesystem ) ) {
-            require_once ABSPATH . 'wp-admin/includes/file.php';
-            WP_Filesystem();
-        }
-
-        if ( ! $wp_filesystem->put_contents( $tmp, $xml, FS_CHMOD_FILE ) ) {
-            return false;
-        }
-
-        return $wp_filesystem->move( $tmp, $path, true );
     }
 }
