@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: Excellink Product Feeds
  * Plugin URI:  https://excellink.com
